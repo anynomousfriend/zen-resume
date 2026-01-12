@@ -162,9 +162,9 @@ export default function Home() {
             </ul>
             
             <Link href="/builder">
-              <Button className="relative h-14 px-8 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi hover:text-washi overflow-hidden group">
-                <span className="relative z-10">Get Started</span>
-                <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <Button className="relative h-14 px-8 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
+                <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Get Started</span>
+                <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
               </Button>
             </Link>
           </div>
@@ -209,15 +209,15 @@ export default function Home() {
                 <span className="italic text-vermilion font-serif">Next opportunity</span>
               </h1>
               
-              <p className="text-xl md:text-2xl mb-12 max-w-lg font-light border-l-2 border-vermilion pl-8 reveal-up opacity-0 stagger-2">
+              <p className="text-xl md:text-2xl mb-12 max-w-lg font-light border-l-2 border-vermilion pl-8 reveal-up opacity-0 stagger-2 text-sumi/70">
                 In a world of noise, find your signal. We craft resumes where design meets destiny through the art of subtraction.
               </p>
               
               <div className="reveal-up opacity-0 stagger-3">
                 <Link href="/builder">
-                  <Button className="relative h-16 px-12 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi hover:text-washi overflow-hidden group">
-                    <span className="relative z-10">Start your journey</span>
-                    <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-400" />
+                  <Button className="relative h-16 px-12 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
+                    <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Start your journey</span>
+                    <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Button>
                 </Link>
               </div>
@@ -327,30 +327,100 @@ export default function Home() {
             <p className="text-xl text-gray-700">Designed for impact. Built for ATS systems. Aesthetically pleasing for humans.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Template 1 */}
-            <div className="relative h-[600px] bg-gray-300 overflow-hidden group reveal-up opacity-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Template 1 - Clean Professional (Current) */}
+            <div className="relative h-[600px] bg-white border-2 border-sumi/10 overflow-hidden group reveal-up opacity-0">
               <img 
-                src="https://picsum.photos/seed/resumeZen1/800/1000" 
-                alt="Minimalist Resume Template" 
-                className="w-full h-full object-cover grayscale sepia-[20%] contrast-90 group-hover:grayscale-0 group-hover:sepia-0 group-hover:contrast-100 group-hover:scale-105 transition-all duration-1000"
+                src="/resume-template-clean.png" 
+                alt="Clean Professional Resume Template" 
+                className="w-full h-full object-contain p-4 group-hover:scale-105 transition-all duration-1000"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                <h4 className="font-serif text-4xl text-white mb-2">The Void</h4>
-                <p className="text-white/80">Maximum negative space. For executives.</p>
+              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                <h4 className="font-serif text-3xl text-white mb-2">Clean Professional</h4>
+                <p className="text-white/80">Minimalist. ATS-friendly. Available now.</p>
               </div>
             </div>
 
-            {/* Template 2 */}
-            <div className="relative h-[600px] bg-gray-300 overflow-hidden group reveal-up opacity-0 stagger-1">
-              <img 
-                src="https://picsum.photos/seed/resumeZen2/800/1000" 
-                alt="Clean Resume Template" 
-                className="w-full h-full object-cover grayscale sepia-[20%] contrast-90 group-hover:grayscale-0 group-hover:sepia-0 group-hover:contrast-100 group-hover:scale-105 transition-all duration-1000"
-              />
-              <div className="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                <h4 className="font-serif text-4xl text-white mb-2">Shibui</h4>
-                <p className="text-white/80">Understated elegance. For creatives.</p>
+            {/* Template 2 - Coming Soon */}
+            <div className="relative h-[600px] bg-gray-100 border-2 border-dashed border-sumi/20 overflow-hidden group reveal-up opacity-0 stagger-1 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="font-serif text-8xl text-sumi/10 mb-4">禅</div>
+                <h4 className="font-serif text-3xl text-indigo mb-3">The Void</h4>
+                <p className="text-sumi/60 mb-4">Maximum negative space. For executives.</p>
+                <span className="inline-block px-6 py-2 bg-sumi/5 text-sumi/50 text-sm uppercase tracking-wider rounded-full">
+                  Coming Soon
+                </span>
+              </div>
+            </div>
+
+            {/* Template 3 - Coming Soon */}
+            <div className="relative h-[600px] bg-gray-100 border-2 border-dashed border-sumi/20 overflow-hidden group reveal-up opacity-0 stagger-2 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="font-serif text-8xl text-sumi/10 mb-4">侘</div>
+                <h4 className="font-serif text-3xl text-indigo mb-3">Wabi-Sabi</h4>
+                <p className="text-sumi/60 mb-4">Perfectly imperfect. For creatives.</p>
+                <span className="inline-block px-6 py-2 bg-sumi/5 text-sumi/50 text-sm uppercase tracking-wider rounded-full">
+                  Coming Soon
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="relative py-32 px-6 bg-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16 reveal-up opacity-0">
+            <span className="text-xs uppercase tracking-[0.2em] text-vermilion font-bold mb-6 block">Pricing</span>
+            <h2 className="font-serif text-6xl md:text-7xl text-indigo mb-6">Simple & Honest</h2>
+            <p className="text-xl text-gray-700">No hidden costs. No subscriptions. Just build your resume.</p>
+          </div>
+
+          <div className="max-w-2xl mx-auto reveal-up opacity-0">
+            <div className="relative p-16 bg-washi border-2 border-sumi/10 text-center overflow-hidden">
+              {/* Decorative Background */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-serif text-[20rem] text-black/[0.02] pointer-events-none select-none">
+                無
+              </div>
+              
+              <div className="relative z-10">
+                <div className="font-serif text-8xl text-indigo mb-6">Free</div>
+                <div className="text-2xl text-sumi/70 mb-8">Forever</div>
+                
+                <div className="space-y-4 mb-12 text-left max-w-md mx-auto">
+                  <div className="flex items-start space-x-3">
+                    <span className="text-vermilion text-xl">✓</span>
+                    <span className="text-lg text-sumi/80">Unlimited resumes</span>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <span className="text-vermilion text-xl">✓</span>
+                    <span className="text-lg text-sumi/80">Export as PDF & LaTeX</span>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <span className="text-vermilion text-xl">✓</span>
+                    <span className="text-lg text-sumi/80">ATS-friendly templates</span>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <span className="text-vermilion text-xl">✓</span>
+                    <span className="text-lg text-sumi/80">No watermarks</span>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <span className="text-vermilion text-xl">✓</span>
+                    <span className="text-lg text-sumi/80">No credit card required</span>
+                  </div>
+                </div>
+
+                <Link href="/builder">
+                  <Button className="relative h-16 px-12 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
+                    <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Start Building Free</span>
+                    <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+                  </Button>
+                </Link>
+
+                <p className="mt-8 text-sm text-sumi/50 italic">
+                  Built with 💜 for job seekers worldwide
+                </p>
               </div>
             </div>
           </div>
