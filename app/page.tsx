@@ -147,9 +147,12 @@ export default function Home() {
       }`}>
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="flex justify-between items-center">
-            <Link href="/" className="relative font-serif text-3xl font-black text-sumi">
-              ZenResume.
-              <span className="absolute -top-2 -right-4 text-sm text-vermilion">禅</span>
+            <Link href="/" className="flex items-center space-x-2">
+              <img 
+                src="/logo-02.png" 
+                alt="ZenResume Logo" 
+                className="h-16 md:h-20 w-auto"
+              />
             </Link>
             
             <ul className="hidden md:flex gap-12">
@@ -182,18 +185,18 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+      <section className="relative min-h-screen flex items-center pt-20 md:pt-20 overflow-hidden">
         <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full opacity-60 mix-blend-multiply z-0" />
         
-        {/* Geometric Shapes */}
-        <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-10">
+        {/* Geometric Shapes - Hidden on mobile */}
+        <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full pointer-events-none z-10">
           <div className="absolute w-[600px] h-[600px] border-2 border-sumi rounded-full opacity-80 animate-rotate-enso" style={{ top: '10%', right: '-10%' }} />
           <div className="absolute w-[400px] h-[400px] border-4 border-vermilion rounded-full opacity-50 animate-rotate-enso" style={{ top: '40%', right: '20%', borderRightColor: 'transparent' }} />
         </div>
 
-        <div className="container mx-auto px-6 max-w-7xl relative z-20">
+        <div className="container mx-auto px-6 md:px-6 max-w-7xl relative z-20">
           <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-0 items-center">
-            {/* Vertical Text */}
+            {/* Vertical Text - Hidden on mobile */}
             <div className="hidden md:flex items-start justify-end pr-12">
               <div className="relative">
                 <div className="vertical-text text-sm tracking-[0.3em] text-indigo/60 font-light" style={{ letterSpacing: '0.5em' }}>
@@ -213,27 +216,27 @@ export default function Home() {
             </div>
             
             {/* Hero Content */}
-            <div className="mix-blend-multiply">
-              <h1 className="font-serif text-7xl md:text-8xl lg:text-9xl font-bold text-indigo leading-[0.85] mb-8 reveal-up opacity-0 stagger-1" style={{ letterSpacing: '-0.03em' }}>
+            <div className="mix-blend-multiply py-12 md:py-0">
+              <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-bold text-indigo leading-[0.9] md:leading-[0.85] mb-6 md:mb-8 reveal-up opacity-0 stagger-1" style={{ letterSpacing: '-0.03em' }}>
                 Create your <br />
                 <span className="italic text-vermilion font-serif">Next opportunity</span>
               </h1>
               
-              <p className="text-xl md:text-2xl mb-12 max-w-lg font-light border-l-2 border-vermilion pl-8 reveal-up opacity-0 stagger-2 text-sumi/70">
-                In a world of noise, find your signal. We craft resumes where design meets destiny through the art of subtraction.
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 md:mb-12 max-w-lg font-light border-l-2 border-vermilion pl-4 md:pl-8 reveal-up opacity-0 stagger-2 text-sumi/70">
+                In a world of noise, find your signal.
               </p>
               
               <div className="reveal-up opacity-0 stagger-3">
                 <Link href="/builder">
-                  <Button className="relative h-16 px-12 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
+                  <Button className="relative h-12 md:h-16 px-8 md:px-12 text-xs md:text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
                     <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Start your journey</span>
                     <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Button>
                 </Link>
               </div>
               
-              {/* Decorative Stamp */}
-              <div className="absolute bottom-20 left-0 w-20 h-20 border-3 border-vermilion text-vermilion flex items-center justify-center font-serif font-bold transform -rotate-15 opacity-80 mix-blend-multiply">
+              {/* Decorative Stamp - Hidden on mobile */}
+              <div className="hidden md:flex absolute bottom-20 left-0 w-20 h-20 border-3 border-vermilion text-vermilion items-center justify-center font-serif font-bold transform -rotate-15 opacity-80 mix-blend-multiply">
                 合格
               </div>
             </div>

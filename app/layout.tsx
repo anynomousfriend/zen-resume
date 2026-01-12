@@ -27,6 +27,15 @@ const notoSerifJP = Noto_Serif_JP({
 export const metadata: Metadata = {
   title: "ZenResume - Craft Your Path",
   description: "Create stunning, professional resumes with mindful intention. In a world of noise, find your signal.",
+  icons: {
+    icon: [
+      { url: '/logo-02.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo-02.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/logo-02.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
