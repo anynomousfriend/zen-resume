@@ -4,10 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { InkCursor, CursorEffect } from '@/components/ink-cursor';
+import { CursorSelector } from '@/components/cursor-selector';
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [cursorEffect, setCursorEffect] = useState<CursorEffect>('none');
 
   useEffect(() => {
     // Scroll reveal animation
@@ -129,6 +132,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-washi overflow-x-hidden">
+      {/* Ink Cursor Effect */}
+      <InkCursor effect={cursorEffect} />
+      
       {/* Texture Overlays */}
       <div className="noise-overlay" />
       <div className="paper-wash" />
@@ -161,12 +167,16 @@ export default function Home() {
               </a></li>
             </ul>
             
-            <Link href="/builder">
-              <Button className="relative h-14 px-8 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
-                <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Get Started</span>
-                <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
-              </Button>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <CursorSelector currentEffect={cursorEffect} onEffectChange={setCursorEffect} />
+              
+              <Link href="/builder">
+                <Button className="relative h-14 px-8 text-sm uppercase tracking-widest font-semibold bg-transparent text-sumi border border-sumi overflow-hidden group">
+                  <span className="relative z-10 group-hover:text-washi transition-colors duration-300">Get Started</span>
+                  <span className="absolute inset-0 bg-sumi scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
