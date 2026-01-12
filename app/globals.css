@@ -1,0 +1,304 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Zen Color Palette */
+    --c-bg: #F2F0EB;
+    --c-text: #1A1A1A;
+    --c-accent-red: #BC3F3C;
+    --c-indigo: #2F3640;
+    --c-gold: #D4AF37;
+    --c-sakura: #E6C0C0;
+    
+    /* Original Variables */
+    --background: 0 0% 100%;
+    --foreground: 340 100% 10%;
+    --card: 330 100% 98%;
+    --card-foreground: 340 100% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 100% 10%;
+    --primary: 340 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 330 100% 95%;
+    --secondary-foreground: 340 100% 10%;
+    --muted: 330 100% 96%;
+    --muted-foreground: 340 40% 46%;
+    --accent: 330 100% 95%;
+    --accent-foreground: 340 100% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 330 40% 90%;
+    --input: 330 40% 90%;
+    --ring: 340 100% 60%;
+    --radius: 1rem;
+    --chart-1: 340 100% 60%;
+    --chart-2: 330 80% 70%;
+    --chart-3: 320 70% 80%;
+    --chart-4: 310 60% 85%;
+    --chart-5: 300 50% 90%;
+  }
+
+  .dark {
+    --background: 340 50% 5%;
+    --foreground: 330 100% 95%;
+    --card: 340 40% 8%;
+    --card-foreground: 330 100% 95%;
+    --popover: 340 50% 5%;
+    --popover-foreground: 330 100% 95%;
+    --primary: 330 80% 60%;
+    --primary-foreground: 340 50% 5%;
+    --secondary: 340 30% 15%;
+    --secondary-foreground: 330 100% 95%;
+    --muted: 340 30% 15%;
+    --muted-foreground: 330 60% 60%;
+    --accent: 340 30% 15%;
+    --accent-foreground: 330 100% 95%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 330 100% 95%;
+    --border: 340 30% 20%;
+    --input: 340 30% 20%;
+    --ring: 330 80% 60%;
+    --chart-1: 330 80% 60%;
+    --chart-2: 320 70% 50%;
+    --chart-3: 310 60% 40%;
+    --chart-4: 300 50% 35%;
+    --chart-5: 290 40% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* Zen Design Utilities */
+  .vertical-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.2em;
+  }
+  
+  .zen-card-hover {
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .zen-card-hover:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Original Utilities */
+  .glass-effect {
+    @apply backdrop-blur-xl bg-white/30 dark:bg-night-900/30 border border-white/20 dark:border-night-700/30;
+  }
+  
+  .blossom-gradient {
+    @apply bg-gradient-to-br from-blossom-100 via-white to-blossom-50;
+  }
+  
+  .night-gradient {
+    @apply bg-gradient-to-br from-night-950 via-night-900 to-night-800;
+  }
+  
+  .petal-shadow {
+    box-shadow: 0 10px 40px -10px rgba(255, 61, 148, 0.3);
+  }
+  
+  .dark .petal-shadow {
+    box-shadow: 0 10px 40px -10px rgba(219, 39, 119, 0.5);
+  }
+}
+
+/* Scrollbar Styling - Zen Theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F2F0EB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #BC3F3C;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AC2F2C;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #BC3F3C #F2F0EB;
+}
+
+/* Selection */
+::selection {
+  @apply bg-blossom-200 dark:bg-night-700 text-blossom-900 dark:text-night-100;
+}
+
+/* ASCII Art Styling */
+.ascii-art {
+  font-family: 'Courier New', monospace;
+  line-height: 1.2;
+  white-space: pre;
+  color: #ff3b94;
+  text-shadow: 0 0 10px rgba(255, 61, 148, 0.5);
+}
+
+.dark .ascii-art {
+  color: #ec4899;
+  text-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Anti-aliasing for better text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Zen-specific Animations */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 {
+  transition-delay: 0.1s;
+}
+
+.stagger-2 {
+  transition-delay: 0.2s;
+}
+
+.stagger-3 {
+  transition-delay: 0.3s;
+}
+
+/* Builder Form Progressive Disclosure */
+.form-chunk {
+  opacity: 0.5;
+  filter: blur(2px);
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.form-chunk.active {
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: all;
+  border-left: 4px solid var(--c-accent-red);
+}
+
+/* Floating Labels */
+.floating-label {
+  position: absolute;
+  top: -0.5rem;
+  left: 0;
+  background: white;
+  padding: 0 5px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+input:focus + .floating-label,
+textarea:focus + .floating-label,
+input:not(:placeholder-shown) + .floating-label,
+textarea:not(:placeholder-shown) + .floating-label {
+  color: var(--c-accent-red);
+}
+
+/* Entry Cards */
+.entry-card {
+  background: var(--c-bg);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.entry-card:hover {
+  transform: translateX(5px);
+  border-left-color: var(--c-accent-red);
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Paper wash gradient */
+.paper-wash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 15% 30%, rgba(230, 192, 192, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 85% 70%, rgba(47, 54, 64, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: -1;
+}
