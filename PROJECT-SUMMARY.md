@@ -1,8 +1,8 @@
-# 🌸 Resume Blossom - Project Summary
+# 🌸 ZenResume - Project Summary
 
 ## 🎯 Project Overview
 
-Resume Blossom is a beautiful, modern resume building platform with a cherry blossom theme. The application features:
+ZenResume is a beautiful, modern resume building platform designed with mindful intention. The application features:
 
 - **Elegant UI/UX**: Pink and white color scheme with cherry blossom aesthetics
 - **Dark Mode**: Darker pink shades creating a nighttime cherry blossom atmosphere
@@ -109,7 +109,7 @@ Resume Blossom is a beautiful, modern resume building platform with a cherry blo
 ## 📁 File Structure
 
 \`\`\`
-resume-blossom/
+zenresume/
 ├── app/
 │   ├── builder/
 │   │   └── page.tsx              # Resume builder with forms
@@ -169,7 +169,7 @@ night-950: #500724  (Background)
 
 1. **Install Dependencies**:
    \`\`\`bash
-   cd resume-blossom
+   cd zenresume
    npm install
    \`\`\`
 

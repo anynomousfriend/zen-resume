@@ -1,4 +1,4 @@
-// Modern LaTeX Template Generator for Resume Blossom
+// Modern LaTeX Template Generator for ZenResume
 // Based on Jitin Nair's CV template (MIT License)
 
 interface PersonalInfo {
@@ -74,7 +74,7 @@ export function generateModernLatex(data: {
 %	The MIT License (MIT)
 %
 %	Copyright (c) 2021 Jitin Nair
-%	Modified for Resume Blossom
+%	Modified for ZenResume
 %-----------------------------------------------------------------------------------------------------------------------------------------------%
 
 %----------------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-# 🌸 Resume Blossom
+# 🌸 ZenResume
 
-A beautiful resume building platform with an elegant cherry blossom theme. Built with modern web technologies to provide a calm, clean, and delightful user experience.
+A beautiful resume building platform with mindful intention. Built with modern web technologies to provide a calm, clean, and delightful user experience.
 
 ## ✨ Features
 
@@ -32,9 +32,9 @@ A beautiful resume building platform with an elegant cherry blossom theme. Built
 ### Installation
 
 1. Clone the repository:
-\`\`\`bash
-cd resume-blossom
-\`\`\`
+```bash
+cd zenresume
+```
 
 2. Install dependencies:
 \`\`\`bash
@@ -58,8 +58,8 @@ pnpm dev
 
 ## 📂 Project Structure
 
-\`\`\`
-resume-blossom/
+```
+zenresume/
 ├── app/
 │   ├── builder/          # Resume builder page
 │   ├── globals.css       # Global styles with custom animations
@@ -126,7 +126,7 @@ This project is open source and available under the MIT License.
 
 ## 🌸 About
 
-Resume Blossom is designed to make resume building a delightful experience. Just like cherry blossoms bloom in spring, let your career bloom with elegance through our beautiful platform.
+ZenResume is designed to make resume building a delightful experience with mindful intention. In a world of noise, find your signal and craft your path with elegance.
 
 ---
 

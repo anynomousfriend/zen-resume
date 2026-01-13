@@ -17,20 +17,20 @@ If you don't have Node.js, install it from [nodejs.org](https://nodejs.org/)
 
 ### Option 1: Using the Start Script (Recommended)
 ```bash
-cd resume-blossom
+cd zenresume
 ./start-dev.sh
 ```
 
 ### Option 2: Manual npm commands
 ```bash
-cd resume-blossom
+cd zenresume
 npm install
 npm run dev
 ```
 
 ### Option 3: Using yarn or pnpm
 ```bash
-cd resume-blossom
+cd zenresume
 
 # With yarn
 yarn install
@@ -211,7 +211,7 @@ After exploring the app:
 
 Check the project structure:
 ```bash
-cd resume-blossom
+cd zenresume
 ls -la app/
 ls -la components/
 ```

@@ -4,7 +4,7 @@
 
 ### ✅ 1. Install Dependencies
 ```bash
-cd resume-blossom
+cd zenresume
 npm install
 ```
 
@@ -51,7 +51,7 @@ npm start
 ```bash
 git init
 git add .
-git commit -m "Initial commit: Resume Blossom"
+git commit -m "Initial commit: ZenResume"
 git remote add origin YOUR_REPO_URL
 git push -u origin main
 ```
@@ -91,7 +91,7 @@ PORT=8080 npm start
 Use PM2 for production:
 ```bash
 npm install -g pm2
-pm2 start npm --name "resume-blossom" -- start
+pm2 start npm --name "zenresume" -- start
 ```
 
 ---
@@ -293,7 +293,7 @@ npm run build && npm start  # Test production locally
 
 ## 🎉 Ready to Deploy!
 
-Your Resume Blossom app is production-ready with:
+Your ZenResume app is production-ready with:
 - ✅ 1,382 lines of quality code
 - ✅ 26 project files
 - ✅ Beautiful UI with cherry blossom theme

@@ -1,6 +1,6 @@
-# 🌸 Resume Blossom - Documentation Index
+# 🌸 ZenResume - Documentation Index
 
-Welcome to Resume Blossom! This is your complete guide to the project.
+Welcome to ZenResume! This is your complete guide to the project.
 
 ---
 
@@ -76,7 +76,7 @@ Welcome to Resume Blossom! This is your complete guide to the project.
 ## 🏗️ Project Structure Quick Reference
 
 ```
-resume-blossom/
+zenresume/
 ├── 📄 Documentation
 │   ├── INDEX.md                    ← You are here
 │   ├── QUICK-START.md              ← Start here!
@@ -154,7 +154,7 @@ resume-blossom/
 
 ### Step 1: Navigate to project
 ```bash
-cd resume-blossom
+cd zenresume
 ```
 
 ### Step 2: Install dependencies
@@ -300,7 +300,7 @@ See [VISUAL-GUIDE.md](VISUAL-GUIDE.md) for complete palette.
 
 ## 🌸 Final Words
 
-Resume Blossom is designed to make resume building a delightful experience. Just like cherry blossoms bloom in spring, let your career bloom with elegance through our beautiful platform.
+ZenResume is designed to make resume building a delightful experience with mindful intention. In a world of noise, find your signal and craft your path with elegance.
 
 **Every interaction is crafted with care.** 
 **Every animation adds joy.** 
