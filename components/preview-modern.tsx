@@ -75,10 +75,10 @@ export default function ModernPreview({
   };
 
   return (
-    <div className={`bg-white p-12 max-w-[210mm] mx-auto ${isAtsMode ? 'text-black' : ''}`} style={{ fontFamily: isAtsMode ? 'Arial, sans-serif' : 'serif' }}>
+    <div className={`bg-white text-black p-12 max-w-[210mm] mx-auto`} style={{ fontFamily: isAtsMode ? 'Arial, sans-serif' : 'serif' }}>
       {/* Header / Title */}
       <div className={`${isAtsMode ? 'text-left mb-6 border-b-2 border-black pb-2' : 'text-center mb-8'}`}>
-        <h1 className={`${isAtsMode ? 'text-3xl' : 'text-4xl'} font-bold mb-3 ${isAtsMode ? 'uppercase' : ''}`}>
+        <h1 className={`${isAtsMode ? 'text-3xl' : 'text-4xl'} font-bold text-black mb-3 ${isAtsMode ? 'uppercase' : ''}`}>
           {personalInfo.fullName || 'Your Name'}
         </h1>
         

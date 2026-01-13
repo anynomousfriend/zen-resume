@@ -1909,55 +1909,17 @@ export default function BuilderPage() {
           /* Preview Mode: Full-screen Preview */
           <div className="overflow-y-auto bg-gray-50" style={{ height: 'calc(100vh - 73px)' }}>
             <div className="max-w-7xl mx-auto px-8 py-12">
-              {/* Template Selection */}
-              <div className="mb-8 flex justify-center gap-4">
-                <button
-                  onClick={() => setActiveTemplate('modern')}
-                  className={`px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 ${
-                    activeTemplate === 'modern'
-                      ? 'bg-gradient-to-r from-blossom-500 to-pink-600 text-white shadow-lg scale-105'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  Modern Template
-                </button>
-                <button
-                  onClick={() => setActiveTemplate('academic')}
-                  className={`px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 ${
-                    activeTemplate === 'academic'
-                      ? 'bg-gradient-to-r from-blossom-500 to-pink-600 text-white shadow-lg scale-105'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  Academic Template
-                </button>
-              </div>
-
               {/* Preview Content */}
-              <div ref={previewRef} className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 md:p-12">
-                {activeTemplate === 'modern' ? (
-                  <ModernPreview
-                    personalInfo={personalInfo}
-                    experiences={experiences}
-                    education={education}
-                    projects={projects}
-                    skills={skills}
-                    isAtsMode={isAtsMode}
-                    sectionOrder={sectionOrder}
-                  />
-                ) : (
-                  <AcademicPreview
-                    personalInfo={personalInfo}
-                    experiences={experiences}
-                    education={education}
-                    publications={publications}
-                    creativeWorks={creativeWorks}
-                    grants={grants}
-                    teachingEntries={teachingEntries}
-                    sectionTitles={sectionTitles}
-                    isAtsMode={isAtsMode}
-                  />
-                )}
+              <div ref={previewRef} className="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+                <ModernPreview
+                  personalInfo={personalInfo}
+                  experiences={experiences}
+                  education={education}
+                  projects={projects}
+                  skills={skills}
+                  isAtsMode={isAtsMode}
+                  sectionOrder={sectionOrder}
+                />
               </div>
             </div>
 
