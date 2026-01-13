@@ -80,7 +80,7 @@ export function generateResumeHTML(data: ResumeData): string {
     body {
       font-family: 'Times New Roman', Times, serif;
       font-size: 11pt;
-      line-height: 1.5;
+      line-height: 1.15;
       color: #000;
       background: #fff;
       padding: 0.5in;

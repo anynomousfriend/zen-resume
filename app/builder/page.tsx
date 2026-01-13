@@ -15,6 +15,9 @@ import { generateModernLatex } from '@/lib/latex-modern-generator';
 import generateZenResume from '@/lib/latex-resume-generator';
 import generateCleanResume from '@/lib/latex-clean-generator';
 import generateResumeHTML from '@/lib/pdf-html-generator';
+import generateDOCX from '@/lib/docx-generator';
+import { Packer } from 'docx';
+import { saveAs } from 'file-saver';
 import AcademicPreview from '@/components/preview-academic';
 import ModernPreview from '@/components/preview-modern';
 
@@ -37,6 +40,7 @@ interface Experience {
   startDate: string;
   endDate: string;
   description: string;
+  current?: boolean;
 }
 
 interface Education {
@@ -251,7 +255,8 @@ export default function BuilderPage() {
       position: '',
       startDate: '',
       endDate: '',
-      description: ''
+      description: '',
+      current: false
     }]);
   };
 
@@ -580,20 +585,36 @@ export default function BuilderPage() {
               </Button>
               
               {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-sumi/20 shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-sumi/20 shadow-lg z-50">
                   <button
                     onClick={downloadPDF}
                     className="w-full px-4 py-3 text-left text-sm text-sumi hover:bg-washi transition-colors flex items-center space-x-3"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Export as PDF</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as PDF</span>
+                      <span className="text-xs text-sumi/60">Print-friendly</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={downloadDOCX}
+                    className="w-full px-4 py-3 text-left text-sm text-sumi hover:bg-washi transition-colors flex items-center space-x-3 border-t border-sumi/10"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as DOCX</span>
+                      <span className="text-xs text-sumi/60">ATS-friendly</span>
+                    </div>
                   </button>
                   <button
                     onClick={downloadLatex}
                     className="w-full px-4 py-3 text-left text-sm text-sumi hover:bg-washi transition-colors flex items-center space-x-3 border-t border-sumi/10"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Export as TEX</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as TEX</span>
+                      <span className="text-xs text-sumi/60">LaTeX source</span>
+                    </div>
                   </button>
                 </div>
               )}
@@ -870,9 +891,31 @@ export default function BuilderPage() {
                               updated[index].endDate = e.target.value;
                               setExperiences(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            disabled={exp.current}
+                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 disabled:opacity-50"
                           />
                         </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`current-${exp.id}`}
+                          checked={exp.current || false}
+                          onChange={(e) => {
+                            const updated = [...experiences];
+                            updated[index].current = e.target.checked;
+                            if (e.target.checked) {
+                              updated[index].endDate = 'Present';
+                            } else {
+                              updated[index].endDate = '';
+                            }
+                            setExperiences(updated);
+                          }}
+                          className="w-4 h-4 text-vermilion border-gray-300 rounded focus:ring-vermilion"
+                        />
+                        <Label htmlFor={`current-${exp.id}`} className="text-sm font-normal text-gray-600 dark:text-gray-400 cursor-pointer">
+                          I currently work here
+                        </Label>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
