@@ -1,7 +1,7 @@
 // DOCX Resume Generator - ATS-Friendly Word Document
 // Uses docx library to create proper Word documents
 
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 
 interface PersonalInfo {
   fullName: string;
@@ -51,21 +51,27 @@ interface Certification {
   link?: string;
 }
 
+export type SectionId = 'experience' | 'education' | 'projects' | 'certifications';
+
 interface ResumeData {
   personalInfo: PersonalInfo;
   experiences: Experience[];
   education: Education[];
   projects: Project[];
   certifications: Certification[];
+  sectionOrder?: SectionId[];
 }
 
 export function generateDOCX(data: ResumeData): Document {
-  const { personalInfo, experiences, education, projects, certifications } = data;
+  const { personalInfo, experiences, education, projects, certifications, sectionOrder } = data;
   
-  const sections: Paragraph[] = [];
+  const paragraphs: Paragraph[] = [];
+
+  // Default section order if not provided
+  const order: SectionId[] = sectionOrder || ['experience', 'education', 'projects', 'certifications'];
 
   // Header - Name and Contact Info (Left-aligned for ATS)
-  sections.push(
+  paragraphs.push(
     new Paragraph({
       text: personalInfo.fullName,
       heading: HeadingLevel.TITLE,
@@ -75,7 +81,7 @@ export function generateDOCX(data: ResumeData): Document {
   );
 
   if (personalInfo.title) {
-    sections.push(
+    paragraphs.push(
       new Paragraph({
         text: personalInfo.title,
         alignment: AlignmentType.LEFT,
@@ -94,7 +100,7 @@ export function generateDOCX(data: ResumeData): Document {
   if (personalInfo.website) contactParts.push(personalInfo.website);
 
   if (contactParts.length > 0) {
-    sections.push(
+    paragraphs.push(
       new Paragraph({
         text: contactParts.join(' | '),
         alignment: AlignmentType.LEFT,
@@ -103,9 +109,9 @@ export function generateDOCX(data: ResumeData): Document {
     );
   }
 
-  // Professional Summary
+  // Professional Summary (always at top, not reorderable)
   if (personalInfo.summary) {
-    sections.push(
+    paragraphs.push(
       new Paragraph({
         text: 'PROFESSIONAL SUMMARY',
         heading: HeadingLevel.HEADING_1,
@@ -113,7 +119,7 @@ export function generateDOCX(data: ResumeData): Document {
         spacing: { before: 240, after: 120 },
       })
     );
-    sections.push(
+    paragraphs.push(
       new Paragraph({
         text: personalInfo.summary,
         alignment: AlignmentType.LEFT,
@@ -122,9 +128,12 @@ export function generateDOCX(data: ResumeData): Document {
     );
   }
 
-  // Work Experience
-  if (experiences.length > 0) {
-    sections.push(
+  // Helper function to generate experience section
+  function generateExperienceSection(): Paragraph[] {
+    if (experiences.length === 0) return [];
+    
+    const result: Paragraph[] = [];
+    result.push(
       new Paragraph({
         text: 'PROFESSIONAL EXPERIENCE',
         heading: HeadingLevel.HEADING_1,
@@ -134,8 +143,7 @@ export function generateDOCX(data: ResumeData): Document {
     );
 
     experiences.forEach((exp) => {
-      // Position and Company
-      sections.push(
+      result.push(
         new Paragraph({
           children: [
             new TextRun({
@@ -148,9 +156,8 @@ export function generateDOCX(data: ResumeData): Document {
         })
       );
 
-      // Company and Dates
       const dateRange = `${exp.startDate} - ${exp.endDate || 'Present'}`;
-      sections.push(
+      result.push(
         new Paragraph({
           children: [
             new TextRun({
@@ -163,11 +170,10 @@ export function generateDOCX(data: ResumeData): Document {
         })
       );
 
-      // Description (bullet points)
       if (exp.description) {
         const bullets = exp.description.split('\n').filter(line => line.trim().length > 0);
         bullets.forEach((bullet) => {
-          sections.push(
+          result.push(
             new Paragraph({
               text: bullet.trim(),
               bullet: { level: 0 },
@@ -178,18 +184,68 @@ export function generateDOCX(data: ResumeData): Document {
         });
       }
 
-      sections.push(
+      result.push(
         new Paragraph({
           text: '',
           spacing: { after: 120 },
         })
       );
     });
+
+    return result;
   }
 
-  // Projects
-  if (projects.length > 0) {
-    sections.push(
+  // Helper function to generate education section
+  function generateEducationSection(): Paragraph[] {
+    if (education.length === 0) return [];
+    
+    const result: Paragraph[] = [];
+    result.push(
+      new Paragraph({
+        text: 'EDUCATION',
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.LEFT,
+        spacing: { before: 240, after: 120 },
+      })
+    );
+
+    education.forEach((edu) => {
+      const degreeLine = `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`;
+      result.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: degreeLine,
+              bold: true,
+            }),
+          ],
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 60 },
+        })
+      );
+
+      const eduDetails: string[] = [edu.school];
+      if (edu.graduationDate) eduDetails.push(edu.graduationDate);
+      if (edu.gpa) eduDetails.push(`GPA: ${edu.gpa}`);
+
+      result.push(
+        new Paragraph({
+          text: eduDetails.join(' | '),
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 120 },
+        })
+      );
+    });
+
+    return result;
+  }
+
+  // Helper function to generate projects section
+  function generateProjectsSection(): Paragraph[] {
+    if (projects.length === 0) return [];
+    
+    const result: Paragraph[] = [];
+    result.push(
       new Paragraph({
         text: 'PROJECTS',
         heading: HeadingLevel.HEADING_1,
@@ -199,7 +255,7 @@ export function generateDOCX(data: ResumeData): Document {
     );
 
     projects.forEach((proj) => {
-      sections.push(
+      result.push(
         new Paragraph({
           children: [
             new TextRun({
@@ -217,7 +273,7 @@ export function generateDOCX(data: ResumeData): Document {
         })
       );
 
-      sections.push(
+      result.push(
         new Paragraph({
           text: proj.description,
           alignment: AlignmentType.LEFT,
@@ -226,7 +282,7 @@ export function generateDOCX(data: ResumeData): Document {
       );
 
       if (proj.technologies) {
-        sections.push(
+        result.push(
           new Paragraph({
             children: [
               new TextRun({
@@ -243,51 +299,16 @@ export function generateDOCX(data: ResumeData): Document {
         );
       }
     });
+
+    return result;
   }
 
-  // Education
-  if (education.length > 0) {
-    sections.push(
-      new Paragraph({
-        text: 'EDUCATION',
-        heading: HeadingLevel.HEADING_1,
-        alignment: AlignmentType.LEFT,
-        spacing: { before: 240, after: 120 },
-      })
-    );
-
-    education.forEach((edu) => {
-      const degreeLine = `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`;
-      sections.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: degreeLine,
-              bold: true,
-            }),
-          ],
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 60 },
-        })
-      );
-
-      const eduDetails: string[] = [edu.school];
-      if (edu.graduationDate) eduDetails.push(edu.graduationDate);
-      if (edu.gpa) eduDetails.push(`GPA: ${edu.gpa}`);
-
-      sections.push(
-        new Paragraph({
-          text: eduDetails.join(' | '),
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 120 },
-        })
-      );
-    });
-  }
-
-  // Certifications
-  if (certifications.length > 0) {
-    sections.push(
+  // Helper function to generate certifications section
+  function generateCertificationsSection(): Paragraph[] {
+    if (certifications.length === 0) return [];
+    
+    const result: Paragraph[] = [];
+    result.push(
       new Paragraph({
         text: 'CERTIFICATIONS',
         heading: HeadingLevel.HEADING_1,
@@ -301,7 +322,7 @@ export function generateDOCX(data: ResumeData): Document {
       if (cert.date) certParts.push(cert.date);
       if (cert.credentialId) certParts.push(`ID: ${cert.credentialId}`);
 
-      sections.push(
+      result.push(
         new Paragraph({
           text: certParts.join(' | '),
           alignment: AlignmentType.LEFT,
@@ -310,7 +331,7 @@ export function generateDOCX(data: ResumeData): Document {
       );
 
       if (cert.link) {
-        sections.push(
+        result.push(
           new Paragraph({
             text: `Verification: ${cert.link}`,
             alignment: AlignmentType.LEFT,
@@ -319,14 +340,37 @@ export function generateDOCX(data: ResumeData): Document {
         );
       }
     });
+
+    return result;
   }
+
+  // Generate sections in the specified order
+  function generateSection(sectionId: SectionId): Paragraph[] {
+    switch (sectionId) {
+      case 'experience':
+        return generateExperienceSection();
+      case 'education':
+        return generateEducationSection();
+      case 'projects':
+        return generateProjectsSection();
+      case 'certifications':
+        return generateCertificationsSection();
+      default:
+        return [];
+    }
+  }
+
+  // Add sections in order
+  order.forEach(sectionId => {
+    paragraphs.push(...generateSection(sectionId));
+  });
 
   // Create and return the document
   return new Document({
     sections: [
       {
         properties: {},
-        children: sections,
+        children: paragraphs,
       },
     ],
   });

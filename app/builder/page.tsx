@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { 
-  Plus, Trash2, ArrowLeft, Download, Save, ChevronDown, FileText
+  Plus, Trash2, ArrowLeft, Download, Save, ChevronDown, FileText, ArrowUpDown
 } from 'lucide-react';
+import { SectionReorder, SectionId, DEFAULT_SECTION_ORDER } from '@/components/section-reorder';
 import Link from 'next/link';
 import { generateLatex } from '@/lib/latex-generator';
 import { generateModernLatex } from '@/lib/latex-modern-generator';
@@ -158,6 +159,8 @@ export default function BuilderPage() {
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [activeSection, setActiveSection] = useState('personal');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<SectionId[]>([...DEFAULT_SECTION_ORDER]);
+  const [showReorderModal, setShowReorderModal] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -177,14 +180,15 @@ export default function BuilderPage() {
         grants,
         teachingEntries,
         sectionTitles,
-        isAtsMode
+        isAtsMode,
+        sectionOrder
       }));
       setIsSaved(true);
     }, 1000);
     
     setIsSaved(false);
     return () => clearTimeout(timer);
-  }, [personalInfo, experiences, education, skills, projects, certifications, languages, publications, creativeWorks, grants, teachingEntries, sectionTitles, isAtsMode]);
+  }, [personalInfo, experiences, education, skills, projects, certifications, languages, publications, creativeWorks, grants, teachingEntries, sectionTitles, isAtsMode, sectionOrder]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -204,6 +208,7 @@ export default function BuilderPage() {
       setTeachingEntries(data.teachingEntries || teachingEntries);
       setSectionTitles(data.sectionTitles || sectionTitles);
       setIsAtsMode(data.isAtsMode || false);
+      setSectionOrder(data.sectionOrder || [...DEFAULT_SECTION_ORDER]);
     }
   }, []);
 
@@ -434,7 +439,8 @@ export default function BuilderPage() {
         experiences,
         education,
         projects,
-        certifications
+        certifications,
+        sectionOrder
       });
       
       const blob = new Blob([latexCode], { type: 'text/plain' });
@@ -465,7 +471,8 @@ export default function BuilderPage() {
         experiences,
         education,
         projects,
-        certifications
+        certifications,
+        sectionOrder
       });
       
       // Open in new window for printing
@@ -495,7 +502,32 @@ export default function BuilderPage() {
       
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`PDF generation failed: ${error.message}\n\nPlease try Export as TEX instead.`);
+      alert(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try Export as TEX instead.`);
+    }
+  };
+
+  const downloadDOCX = async () => {
+    setShowExportMenu(false);
+    
+    try {
+      const doc = generateDOCX({
+        personalInfo,
+        experiences,
+        education,
+        projects,
+        certifications,
+        sectionOrder
+      });
+      
+      const blob = await Packer.toBlob(doc);
+      const fileName = personalInfo.fullName 
+        ? `${personalInfo.fullName.replace(/\s+/g, '_')}_Resume.docx`
+        : 'Resume.docx';
+      
+      saveAs(blob, fileName);
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      alert(`DOCX generation failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try another export format.`);
     }
   };
 
@@ -569,6 +601,17 @@ export default function BuilderPage() {
               onClick={clearAll}
             >
               <Trash2 className="w-4 h-4" />
+            </Button>
+            
+            {/* Reorder Sections Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-indigo/60 hover:text-vermilion transition-colors"
+              onClick={() => setShowReorderModal(true)}
+              title="Reorder sections"
+            >
+              <ArrowUpDown className="w-4 h-4" />
             </Button>
             
             {/* Export Dropdown */}
@@ -1900,6 +1943,7 @@ export default function BuilderPage() {
                     projects={projects}
                     skills={skills}
                     isAtsMode={isAtsMode}
+                    sectionOrder={sectionOrder}
                   />
                 ) : (
                   <AcademicPreview
@@ -1920,6 +1964,15 @@ export default function BuilderPage() {
           </div>
         )}
       </div>
+
+      {/* Section Reorder Modal */}
+      {showReorderModal && (
+        <SectionReorder
+          sectionOrder={sectionOrder}
+          onOrderChange={setSectionOrder}
+          onClose={() => setShowReorderModal(false)}
+        />
+      )}
     </main>
   );
 }

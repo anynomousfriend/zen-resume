@@ -45,7 +45,10 @@ interface Certification {
   issuer: string;
   date: string;
   credentialId: string;
+  link?: string;
 }
+
+export type SectionId = 'experience' | 'education' | 'projects' | 'certifications';
 
 interface ResumeData {
   personalInfo: PersonalInfo;
@@ -53,10 +56,14 @@ interface ResumeData {
   education: Education[];
   projects: Project[];
   certifications: Certification[];
+  sectionOrder?: SectionId[];
 }
 
 export function generateCleanResume(data: ResumeData): string {
-  const { personalInfo, experiences, education, projects, certifications } = data;
+  const { personalInfo, experiences, education, projects, certifications, sectionOrder } = data;
+  
+  // Default section order if not provided
+  const order: SectionId[] = sectionOrder || ['experience', 'education', 'projects', 'certifications'];
 
   return `\\documentclass[a4paper,10pt]{article}
 
@@ -105,25 +112,47 @@ ${personalInfo.summary ? `% --- Summary ---
 ${escapeLatex(personalInfo.summary)}
 ` : ''}
 
-${experiences.length > 0 ? `% --- Work Experience ---
+${order.map(sectionId => generateSectionContent(sectionId, { experiences, education, projects, certifications })).join('\n')}
+
+% --- Footer ---
+\\vfill
+\\begin{center}
+    \\footnotesize Last updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+\\end{center}
+
+\\end{document}`;
+}
+
+function generateSectionContent(
+  sectionId: SectionId, 
+  data: { experiences: Experience[], education: Education[], projects: Project[], certifications: Certification[] }
+): string {
+  const { experiences, education, projects, certifications } = data;
+  
+  switch (sectionId) {
+    case 'experience':
+      return experiences.length > 0 ? `% --- Work Experience ---
 \\section*{Work Experience}
 
 ${experiences.map(exp => generateExperienceEntry(exp)).join('\n\n')}
-` : ''}
-
-${projects.length > 0 ? `% --- Projects ---
-\\section*{Projects}
-${projects.map(proj => generateProjectEntry(proj)).join('\n\n')}
-` : ''}
-
-${education.length > 0 ? `% --- Education ---
+` : '';
+    
+    case 'education':
+      return education.length > 0 ? `% --- Education ---
 \\section*{Education}
 \\begin{tabularx}{\\textwidth}{@{}p{0.18\\textwidth} X r@{}}
 ${education.map(edu => generateEducationEntry(edu)).join(' \\\\\n')}
 \\end{tabularx}
-` : ''}
-
-${certifications.length > 0 ? `% --- Certifications ---
+` : '';
+    
+    case 'projects':
+      return projects.length > 0 ? `% --- Projects ---
+\\section*{Projects}
+${projects.map(proj => generateProjectEntry(proj)).join('\n\n')}
+` : '';
+    
+    case 'certifications':
+      return certifications.length > 0 ? `% --- Certifications ---
 \\section*{Certifications}
 \\begin{tabularx}{\\textwidth}{@{}p{0.2\\textwidth} X@{}}
 ${certifications.map(cert => {
@@ -137,15 +166,11 @@ ${certifications.map(cert => {
   return line;
 }).join(' \\\\\n')}
 \\end{tabularx}
-` : ''}
-
-% --- Footer ---
-\\vfill
-\\begin{center}
-    \\footnotesize Last updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-\\end{center}
-
-\\end{document}`;
+` : '';
+    
+    default:
+      return '';
+  }
 }
 
 function generateContactLine(info: PersonalInfo): string {

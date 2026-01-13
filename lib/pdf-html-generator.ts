@@ -48,22 +48,105 @@ interface Certification {
   link?: string;
 }
 
+export type SectionId = 'experience' | 'education' | 'projects' | 'certifications';
+
 interface ResumeData {
   personalInfo: PersonalInfo;
   experiences: Experience[];
   education: Education[];
   projects: Project[];
   certifications: Certification[];
+  sectionOrder?: SectionId[];
 }
 
 export function generateResumeHTML(data: ResumeData): string {
-  const { personalInfo, experiences, education, projects, certifications } = data;
+  const { personalInfo, experiences, education, projects, certifications, sectionOrder } = data;
   
   const currentDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 
   });
+
+  // Default section order if not provided
+  const order: SectionId[] = sectionOrder || ['experience', 'education', 'projects', 'certifications'];
+
+  // Generate section HTML based on section ID
+  function generateSection(sectionId: SectionId): string {
+    switch (sectionId) {
+      case 'experience':
+        return experiences.length > 0 ? `
+  <!-- Work Experience -->
+  <div class="section">
+    <div class="section-title">Work Experience</div>
+    ${experiences.map(exp => `
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">${escapeHTML(exp.position)}</span>
+          <span class="entry-date">${formatDateRange(exp.startDate, exp.endDate)}</span>
+        </div>
+        <div class="entry-subtitle">${escapeHTML(exp.company)}</div>
+        <div class="entry-description">${escapeHTML(exp.description)}</div>
+      </div>
+    `).join('')}
+  </div>
+  ` : '';
+
+      case 'education':
+        return education.length > 0 ? `
+  <!-- Education -->
+  <div class="section">
+    <div class="section-title">Education</div>
+    <table class="education-table">
+      ${education.map(edu => `
+        <tr>
+          <td>${escapeHTML(edu.graduationDate)}</td>
+          <td>${escapeHTML(edu.degree)}${edu.field ? ` (${escapeHTML(edu.field)})` : ''} at <strong>${escapeHTML(edu.school)}</strong></td>
+          <td>${edu.gpa ? `(GPA: ${escapeHTML(edu.gpa)})` : ''}</td>
+        </tr>
+      `).join('')}
+    </table>
+  </div>
+  ` : '';
+
+      case 'projects':
+        return projects.length > 0 ? `
+  <!-- Projects -->
+  <div class="section">
+    <div class="section-title">Projects</div>
+    ${projects.map(proj => `
+      <div class="entry">
+        <div class="entry-header">
+          <span class="entry-title">${escapeHTML(proj.title)}</span>
+          ${proj.link ? `<span class="entry-date"><a href="${escapeHTML(proj.link)}">Link to Demo</a></span>` : ''}
+        </div>
+        <div class="entry-description">${escapeHTML(proj.description)}</div>
+        ${proj.technologies ? `<div style="margin-top: 0.3em;"><strong>Technologies:</strong> ${escapeHTML(proj.technologies)}</div>` : ''}
+      </div>
+    `).join('')}
+  </div>
+  ` : '';
+
+      case 'certifications':
+        return certifications.length > 0 ? `
+  <!-- Certifications -->
+  <div class="section">
+    <div class="section-title">Certifications</div>
+    ${certifications.map(cert => `
+      <div class="cert-entry">
+        <span class="cert-title">${escapeHTML(cert.name)}</span> - ${escapeHTML(cert.issuer)}
+        ${cert.date ? ` (${escapeHTML(cert.date)})` : ''}
+        ${cert.credentialId ? ` - ID: ${escapeHTML(cert.credentialId)}` : ''}
+        ${cert.link ? ` - <a href="${escapeHTML(cert.link)}">Verify</a>` : ''}
+      </div>
+    `).join('')}
+  </div>
+  ` : '';
+
+      default:
+        return '';
+    }
+  }
 
   return `<!DOCTYPE html>
 <html>
@@ -282,70 +365,7 @@ export function generateResumeHTML(data: ResumeData): string {
   </div>
   ` : ''}
 
-  ${experiences.length > 0 ? `
-  <!-- Work Experience -->
-  <div class="section">
-    <div class="section-title">Work Experience</div>
-    ${experiences.map(exp => `
-      <div class="entry">
-        <div class="entry-header">
-          <span class="entry-title">${escapeHTML(exp.position)}</span>
-          <span class="entry-date">${formatDateRange(exp.startDate, exp.endDate)}</span>
-        </div>
-        <div class="entry-subtitle">${escapeHTML(exp.company)}</div>
-        <div class="entry-description">${escapeHTML(exp.description)}</div>
-      </div>
-    `).join('')}
-  </div>
-  ` : ''}
-
-  ${projects.length > 0 ? `
-  <!-- Projects -->
-  <div class="section">
-    <div class="section-title">Projects</div>
-    ${projects.map(proj => `
-      <div class="entry">
-        <div class="entry-header">
-          <span class="entry-title">${escapeHTML(proj.title)}</span>
-          ${proj.link ? `<span class="entry-date"><a href="${escapeHTML(proj.link)}">Link to Demo</a></span>` : ''}
-        </div>
-        <div class="entry-description">${escapeHTML(proj.description)}</div>
-        ${proj.technologies ? `<div style="margin-top: 0.3em;"><strong>Technologies:</strong> ${escapeHTML(proj.technologies)}</div>` : ''}
-      </div>
-    `).join('')}
-  </div>
-  ` : ''}
-
-  ${education.length > 0 ? `
-  <!-- Education -->
-  <div class="section">
-    <div class="section-title">Education</div>
-    <table class="education-table">
-      ${education.map(edu => `
-        <tr>
-          <td>${escapeHTML(edu.graduationDate)}</td>
-          <td>${escapeHTML(edu.degree)}${edu.field ? ` (${escapeHTML(edu.field)})` : ''} at <strong>${escapeHTML(edu.school)}</strong></td>
-          <td>${edu.gpa ? `(GPA: ${escapeHTML(edu.gpa)})` : ''}</td>
-        </tr>
-      `).join('')}
-    </table>
-  </div>
-  ` : ''}
-
-  ${certifications.length > 0 ? `
-  <!-- Certifications -->
-  <div class="section">
-    <div class="section-title">Certifications</div>
-    ${certifications.map(cert => `
-      <div class="cert-entry">
-        <span class="cert-title">${escapeHTML(cert.name)}</span> - ${escapeHTML(cert.issuer)}
-        ${cert.date ? ` (${escapeHTML(cert.date)})` : ''}
-        ${cert.credentialId ? ` - ID: ${escapeHTML(cert.credentialId)}` : ''}
-        ${cert.link ? ` - <a href="${escapeHTML(cert.link)}">Verify</a>` : ''}
-      </div>
-    `).join('')}
-  </div>
-  ` : ''}
+  ${order.map(sectionId => generateSection(sectionId)).join('')}
 
   <!-- Footer -->
   <div class="footer">
