@@ -140,13 +140,12 @@ export function SectionReorder({ sectionOrder, onOrderChange, onClose }: Section
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-sumi/10 bg-sumi/5">
-          <Button
-            variant="ghost"
+          <button
             onClick={handleReset}
-            className="text-sumi/60 hover:text-sumi"
+            className="text-sm text-sumi/70 hover:text-vermilion transition-colors duration-200 font-normal"
           >
             Reset to Default
-          </Button>
+          </button>
           <Button
             onClick={onClose}
             className="bg-vermilion hover:bg-vermilion/90 text-white"

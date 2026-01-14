@@ -40,6 +40,15 @@ interface Skill {
   level: string;
 }
 
+interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  credentialId: string;
+  link?: string;
+}
+
 export type SectionId = 'experience' | 'education' | 'projects' | 'certifications';
 
 interface ModernPreviewProps {
@@ -48,6 +57,7 @@ interface ModernPreviewProps {
   education: Education[];
   projects: Project[];
   skills: Skill[];
+  certifications?: Certification[];
   githubUsername?: string;
   linkedinUsername?: string;
   website?: string;
@@ -61,6 +71,7 @@ export default function ModernPreview({
   education,
   projects,
   skills,
+  certifications = [],
   githubUsername,
   linkedinUsername,
   website,
@@ -221,8 +232,36 @@ export default function ModernPreview({
             );
 
           case 'certifications':
-            // Certifications not used in ModernPreview
-            return null;
+            return certifications.some(cert => cert.name) ? (
+              <section key="certifications" className="mb-6">
+                <h2 className={`${isAtsMode ? 'text-xl' : 'text-2xl'} font-bold border-b-2 border-black pb-1 mb-3 ${isAtsMode ? 'uppercase' : ''}`}>
+                  {isAtsMode ? 'CERTIFICATIONS' : 'Certifications'}
+                </h2>
+                <div className="space-y-3">
+                  {certifications.filter(cert => cert.name).map((cert) => (
+                    <div key={cert.id}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-base">{cert.name}</h3>
+                          <p className="text-sm text-gray-700">{cert.issuer}</p>
+                          {cert.credentialId && (
+                            <p className="text-xs text-gray-600">Credential ID: {cert.credentialId}</p>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-600 whitespace-nowrap ml-4">
+                          {cert.date ? formatDate(cert.date + '-01') : ''}
+                        </span>
+                      </div>
+                      {cert.link && !isAtsMode && (
+                        <a href={cert.link} className="text-xs text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                          View Certificate
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null;
 
           default:
             return null;

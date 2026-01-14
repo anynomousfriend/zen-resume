@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { parseCertificateUrl, supportsMetadataFetching, getPlatformHelpMessage } from '@/lib/certificate-parser';
 import { 
   Plus, Trash2, ArrowLeft, Download, Save, ChevronDown, FileText, ArrowUpDown
 } from 'lucide-react';
@@ -74,6 +75,8 @@ interface Certification {
   date: string;
   credentialId: string;
   link?: string;
+  fetchingMetadata?: boolean;
+  fetchError?: string;
 }
 
 interface Language {
@@ -317,12 +320,121 @@ export default function BuilderPage() {
       issuer: '',
       date: '',
       credentialId: '',
-      link: ''
+      link: '',
+      fetchingMetadata: false,
+      fetchError: undefined
     }]);
   };
 
   const removeCertification = (id: string) => {
     setCertifications(certifications.filter(cert => cert.id !== id));
+  };
+
+  // Handle certificate URL paste - auto-extract credential ID and platform
+  const handleCertificateUrlPaste = (index: number, url: string) => {
+    const updated = [...certifications];
+    updated[index].link = url;
+    updated[index].fetchError = undefined;
+    
+    // Parse the URL immediately (client-side)
+    const parsed = parseCertificateUrl(url);
+    
+    if (parsed.isValid && parsed.platform?.detected) {
+      const platform = parsed.platform;
+      
+      // Auto-fill what we can from URL parsing
+      if (platform.credentialId && !updated[index].credentialId) {
+        updated[index].credentialId = platform.credentialId;
+      }
+      
+      if (platform.issuer && !updated[index].issuer) {
+        updated[index].issuer = platform.issuer;
+      }
+      
+      // If platform name contains more info (e.g., "AWS Certified" from Credly), use it
+      if (platform.name && !updated[index].name) {
+        // Don't auto-fill name from just platform, wait for metadata fetch
+      }
+    }
+    
+    setCertifications(updated);
+  };
+
+  // Fetch certificate metadata from backend
+  const fetchCertificateMetadata = async (index: number) => {
+    const cert = certifications[index];
+    
+    if (!cert.link) {
+      return;
+    }
+    
+    // Parse URL to check if it's supported
+    const parsed = parseCertificateUrl(cert.link);
+    
+    if (!parsed.isValid || !parsed.platform?.detected) {
+      const updated = [...certifications];
+      updated[index].fetchError = 'Unable to detect certificate platform from URL.';
+      setCertifications(updated);
+      return;
+    }
+    
+    if (!supportsMetadataFetching(parsed.platform.name)) {
+      const updated = [...certifications];
+      updated[index].fetchError = `${parsed.platform.name} certificates have limited metadata support.`;
+      setCertifications(updated);
+      return;
+    }
+    
+    // Set loading state
+    const updatedLoading = [...certifications];
+    updatedLoading[index].fetchingMetadata = true;
+    updatedLoading[index].fetchError = undefined;
+    setCertifications(updatedLoading);
+    
+    try {
+      const response = await fetch('/api/fetch-certificate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: cert.link })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch certificate metadata');
+      }
+      
+      if (data.success && data.metadata) {
+        const updated = [...certifications];
+        
+        // Auto-fill fields that are empty
+        if (data.metadata.name && !updated[index].name) {
+          updated[index].name = data.metadata.name;
+        }
+        
+        if (data.metadata.issuer && !updated[index].issuer) {
+          updated[index].issuer = data.metadata.issuer;
+        }
+        
+        if (data.metadata.completionDate && !updated[index].date) {
+          updated[index].date = data.metadata.completionDate;
+        }
+        
+        updated[index].fetchingMetadata = false;
+        updated[index].fetchError = undefined;
+        setCertifications(updated);
+      } else {
+        throw new Error('No metadata returned');
+      }
+      
+    } catch (error) {
+      const updated = [...certifications];
+      updated[index].fetchingMetadata = false;
+      updated[index].fetchError = error instanceof Error ? error.message : 'Failed to fetch certificate details';
+      setCertifications(updated);
+    }
   };
 
   const addLanguage = () => {
@@ -865,7 +977,7 @@ export default function BuilderPage() {
                 ) : (
                   <>
                     {experiences.map((exp, index) => (
-                  <div key={exp.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={exp.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Position {index + 1}</span>
                       {experiences.length > 1 && (
@@ -880,54 +992,58 @@ export default function BuilderPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Company</Label>
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
-                            placeholder="Company Name"
+                            id={`company-${exp.id}`}
+                            placeholder=" "
                             value={exp.company}
                             onChange={(e) => {
                               const updated = [...experiences];
                               updated[index].company = e.target.value;
                               setExperiences(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`company-${exp.id}`} className="floating-label">Company</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Position</Label>
+                        <div className="relative">
                           <Input
-                            placeholder="Job Title"
+                            id={`position-${exp.id}`}
+                            placeholder=" "
                             value={exp.position}
                             onChange={(e) => {
                               const updated = [...experiences];
                               updated[index].position = e.target.value;
                               setExperiences(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`position-${exp.id}`} className="floating-label">Position</Label>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Start Date</Label>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
+                            id={`startDate-${exp.id}`}
                             type="month"
+                            placeholder=" "
                             value={exp.startDate}
                             onChange={(e) => {
                               const updated = [...experiences];
                               updated[index].startDate = e.target.value;
                               setExperiences(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`startDate-${exp.id}`} className="floating-label">Start Date</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">End Date</Label>
+                        <div className="relative">
                           <Input
+                            id={`endDate-${exp.id}`}
                             type="month"
-                            placeholder="Present"
+                            placeholder=" "
                             value={exp.endDate}
                             onChange={(e) => {
                               const updated = [...experiences];
@@ -935,11 +1051,12 @@ export default function BuilderPage() {
                               setExperiences(updated);
                             }}
                             disabled={exp.current}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 disabled:opacity-50"
+                            className="font-serif text-xl pt-4 disabled:opacity-50"
                           />
+                          <Label htmlFor={`endDate-${exp.id}`} className="floating-label">End Date</Label>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
                           id={`current-${exp.id}`}
@@ -954,25 +1071,26 @@ export default function BuilderPage() {
                             }
                             setExperiences(updated);
                           }}
-                          className="w-4 h-4 text-vermilion border-gray-300 rounded focus:ring-vermilion"
+                          className="w-4 h-4 rounded border-sumi/30 checked:bg-vermilion checked:border-vermilion focus:ring-2 focus:ring-vermilion/20 focus:ring-offset-0 cursor-pointer accent-vermilion"
                         />
-                        <Label htmlFor={`current-${exp.id}`} className="text-sm font-normal text-gray-600 dark:text-gray-400 cursor-pointer">
+                        <label htmlFor={`current-${exp.id}`} className="text-xs text-indigo/60 cursor-pointer font-normal">
                           I currently work here
-                        </Label>
+                        </label>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                      <div className="relative">
                         <Textarea
-                          rows={3}
-                          placeholder="Key responsibilities and achievements..."
+                          id={`description-${exp.id}`}
+                          rows={4}
+                          placeholder=" "
                           value={exp.description}
                           onChange={(e) => {
                             const updated = [...experiences];
                             updated[index].description = e.target.value;
                             setExperiences(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 resize-none"
+                          className="font-serif text-lg pt-4 resize-none"
                         />
+                        <Label htmlFor={`description-${exp.id}`} className="floating-label">Description</Label>
                       </div>
                     </div>
                   </div>
@@ -1022,7 +1140,7 @@ export default function BuilderPage() {
                 ) : (
                   <>
                     {education.map((edu, index) => (
-                  <div key={edu.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={edu.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Education {index + 1}</span>
                       {education.length > 1 && (
@@ -1037,61 +1155,66 @@ export default function BuilderPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">School/University</Label>
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
-                            placeholder="University Name"
+                            id={`school-${edu.id}`}
+                            placeholder=" "
                             value={edu.school}
                             onChange={(e) => {
                               const updated = [...education];
                               updated[index].school = e.target.value;
                               setEducation(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`school-${edu.id}`} className="floating-label">School/University</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Degree</Label>
+                        <div className="relative">
                           <Input
-                            placeholder="Bachelor's, Master's, etc."
+                            id={`degree-${edu.id}`}
+                            placeholder=" "
                             value={edu.degree}
                             onChange={(e) => {
                               const updated = [...education];
                               updated[index].degree = e.target.value;
                               setEducation(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`degree-${edu.id}`} className="floating-label">Degree</Label>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Field of Study</Label>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
-                            placeholder="Computer Science"
+                            id={`field-${edu.id}`}
+                            placeholder=" "
                             value={edu.field}
                             onChange={(e) => {
                               const updated = [...education];
                               updated[index].field = e.target.value;
                               setEducation(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`field-${edu.id}`} className="floating-label">Field of Study</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Graduation Date</Label>
+                        <div className="relative">
                           <Input
+                            id={`graduationDate-${edu.id}`}
                             type="month"
+                            placeholder=" "
                             value={edu.graduationDate}
                             onChange={(e) => {
                               const updated = [...education];
                               updated[index].graduationDate = e.target.value;
                               setEducation(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`graduationDate-${edu.id}`} className="floating-label">Graduation Date</Label>
                         </div>
                       </div>
                     </div>
@@ -1136,7 +1259,7 @@ export default function BuilderPage() {
                 ) : (
                   <>
                     {skills.map((skill, index) => (
-                  <div key={skill.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={skill.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Skill {index + 1}</span>
                       {skills.length > 1 && (
@@ -1152,9 +1275,9 @@ export default function BuilderPage() {
                       )}
                     </div>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4 items-end">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Skill Name</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Skill Name</Label>
                           <Input
                             placeholder="e.g. JavaScript, Leadership"
                             value={skill.name}
@@ -1163,13 +1286,13 @@ export default function BuilderPage() {
                               updated[index].name = e.target.value;
                               setSkills(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Proficiency</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Proficiency</Label>
                           <select
-                            className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                            className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors font-serif"
                             value={skill.level}
                             onChange={(e) => {
                               const updated = [...skills];
@@ -1232,7 +1355,7 @@ export default function BuilderPage() {
                 ) : (
                   <>
                     {projects.map((project, index) => (
-                  <div key={project.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={project.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Project {index + 1}</span>
                       {projects.length > 1 && (
@@ -1247,60 +1370,64 @@ export default function BuilderPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="space-y-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Project Title</Label>
+                    <div className="space-y-8">
+                      <div className="relative">
                         <Input
-                          placeholder="E-commerce Platform"
+                          id={`projectTitle-${project.id}`}
+                          placeholder=" "
                           value={project.title}
                           onChange={(e) => {
                             const updated = [...projects];
                             updated[index].title = e.target.value;
                             setProjects(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 transition-all duration-200"
+                          className="font-serif text-xl pt-4"
                         />
+                        <Label htmlFor={`projectTitle-${project.id}`} className="floating-label">Project Title</Label>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                      <div className="relative">
                         <Textarea
-                          rows={3}
-                          placeholder="Brief description of the project and your contributions..."
+                          id={`projectDesc-${project.id}`}
+                          rows={4}
+                          placeholder=" "
                           value={project.description}
                           onChange={(e) => {
                             const updated = [...projects];
                             updated[index].description = e.target.value;
                             setProjects(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 resize-none"
+                          className="font-serif text-lg pt-4 resize-none"
                         />
+                        <Label htmlFor={`projectDesc-${project.id}`} className="floating-label">Description</Label>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Technologies</Label>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
-                            placeholder="React, Node.js, MongoDB"
+                            id={`projectTech-${project.id}`}
+                            placeholder=" "
                             value={project.technologies}
                             onChange={(e) => {
                               const updated = [...projects];
                               updated[index].technologies = e.target.value;
                               setProjects(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`projectTech-${project.id}`} className="floating-label">Technologies</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Link (Optional)</Label>
+                        <div className="relative">
                           <Input
-                            placeholder="https://project.com"
+                            id={`projectLink-${project.id}`}
+                            placeholder=" "
                             value={project.link}
                             onChange={(e) => {
                               const updated = [...projects];
                               updated[index].link = e.target.value;
                               setProjects(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`projectLink-${project.id}`} className="floating-label">Link (Optional)</Label>
                         </div>
                       </div>
                     </div>
@@ -1337,7 +1464,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {certifications.map((cert, index) => (
-                  <div key={cert.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={cert.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Certification {index + 1}</span>
                       {certifications.length > 1 && (
@@ -1352,75 +1479,138 @@ export default function BuilderPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Certification Name</Label>
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
-                            placeholder="AWS Certified Solutions Architect"
+                            id={`certName-${cert.id}`}
+                            placeholder=" "
                             value={cert.name}
                             onChange={(e) => {
                               const updated = [...certifications];
                               updated[index].name = e.target.value;
                               setCertifications(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`certName-${cert.id}`} className="floating-label">Certification Name</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Issuing Organization</Label>
+                        <div className="relative">
                           <Input
-                            placeholder="Amazon Web Services"
+                            id={`certIssuer-${cert.id}`}
+                            placeholder=" "
                             value={cert.issuer}
                             onChange={(e) => {
                               const updated = [...certifications];
                               updated[index].issuer = e.target.value;
                               setCertifications(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`certIssuer-${cert.id}`} className="floating-label">Issuing Organization</Label>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Issue Date</Label>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="relative">
                           <Input
+                            id={`certDate-${cert.id}`}
                             type="month"
+                            placeholder=" "
                             value={cert.date}
                             onChange={(e) => {
                               const updated = [...certifications];
                               updated[index].date = e.target.value;
                               setCertifications(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`certDate-${cert.id}`} className="floating-label">Issue Date</Label>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Credential ID (Optional)</Label>
+                        <div className="relative">
                           <Input
-                            placeholder="ABC123XYZ"
+                            id={`certId-${cert.id}`}
+                            placeholder=" "
                             value={cert.credentialId}
                             onChange={(e) => {
                               const updated = [...certifications];
                               updated[index].credentialId = e.target.value;
                               setCertifications(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif text-xl pt-4"
                           />
+                          <Label htmlFor={`certId-${cert.id}`} className="floating-label">Credential ID (Optional)</Label>
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Verification Link (Optional)</Label>
-                        <Input
-                          placeholder="https://verify.example.com/cert123"
-                          value={cert.link || ''}
-                          onChange={(e) => {
-                            const updated = [...certifications];
-                            updated[index].link = e.target.value;
-                            setCertifications(updated);
-                          }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
-                        />
+                      <div className="relative">
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              id={`certUrl-${cert.id}`}
+                              placeholder=" "
+                              value={cert.link || ''}
+                              onChange={(e) => {
+                                handleCertificateUrlPaste(index, e.target.value);
+                              }}
+                              className="font-serif text-xl pt-4"
+                            />
+                            <Label htmlFor={`certUrl-${cert.id}`} className="floating-label">
+                              Certificate URL (Optional)
+                            </Label>
+                          </div>
+                          {cert.link && parseCertificateUrl(cert.link).isValid && parseCertificateUrl(cert.link).platform?.detected && (
+                            <button
+                              type="button"
+                              onClick={() => fetchCertificateMetadata(index)}
+                              disabled={cert.fetchingMetadata}
+                              className="shrink-0 px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors border border-sumi/20 bg-transparent text-sumi hover:bg-sumi hover:text-washi disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {cert.fetchingMetadata ? (
+                                <>
+                                  <ArrowUpDown className="w-3 h-3 inline mr-1 animate-spin" />
+                                  Fetching
+                                </>
+                              ) : (
+                                <>
+                                  <Download className="w-3 h-3 inline mr-1" />
+                                  Fetch
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                        {cert.link && (() => {
+                          const parsed = parseCertificateUrl(cert.link);
+                          if (parsed.isValid && parsed.platform?.detected) {
+                            return (
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="inline-flex items-center px-2 py-1 text-xs font-medium uppercase tracking-wider border border-sumi/20 text-indigo/60">
+                                  {parsed.platform.name}
+                                </span>
+                                {parsed.platform.credentialId && (
+                                  <span className="text-xs text-indigo/40">
+                                    ID: {parsed.platform.credentialId}
+                                  </span>
+                                )}
+                                {supportsMetadataFetching(parsed.platform.name) && (
+                                  <span className="text-xs text-vermilion">
+                                    ✓ Auto-fill available
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          } else if (parsed.isValid) {
+                            return (
+                              <p className="text-xs text-indigo/40 mt-2">
+                                Platform not recognized. You can still use this URL for verification.
+                              </p>
+                            );
+                          }
+                        })()}
+                        {cert.fetchError && (
+                          <p className="text-xs text-vermilion mt-2">
+                            {cert.fetchError}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1448,7 +1638,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {languages.map((lang, index) => (
-                  <div key={lang.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={lang.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Language {index + 1}</span>
                       {languages.length > 1 && (
@@ -1466,7 +1656,7 @@ export default function BuilderPage() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Language</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Language</Label>
                           <Input
                             placeholder="English, Spanish, etc."
                             value={lang.name}
@@ -1475,13 +1665,13 @@ export default function BuilderPage() {
                               updated[index].name = e.target.value;
                               setLanguages(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Proficiency</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Proficiency</Label>
                           <select
-                            className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                            className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                             value={lang.proficiency}
                             onChange={(e) => {
                               const updated = [...languages];
@@ -1523,7 +1713,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {publications.map((pub, index) => (
-                  <div key={pub.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={pub.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Publication {index + 1}</span>
                       {publications.length > 1 && (
@@ -1540,9 +1730,9 @@ export default function BuilderPage() {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Type</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Type</Label>
                         <select
-                          className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                          className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                           value={pub.type}
                           onChange={(e) => {
                             const updated = [...publications];
@@ -1559,7 +1749,7 @@ export default function BuilderPage() {
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Full Citation</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Full Citation</Label>
                         <Textarea
                           rows={3}
                           placeholder="Author(s). (Year). Title. Journal/Publisher, Volume(Issue), pages. DOI/URL"
@@ -1569,7 +1759,7 @@ export default function BuilderPage() {
                             updated[index].citation = e.target.value;
                             setPublications(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 resize-none"
+                          className="font-serif border-sumi/20 focus:border-vermilion resize-none"
                         />
                       </div>
                     </div>
@@ -1598,7 +1788,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {creativeWorks.map((work, index) => (
-                  <div key={work.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={work.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Work {index + 1}</span>
                       {creativeWorks.length > 1 && (
@@ -1615,9 +1805,9 @@ export default function BuilderPage() {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Type</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Type</Label>
                         <select
-                          className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                          className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                           value={work.type}
                           onChange={(e) => {
                             const updated = [...creativeWorks];
@@ -1633,7 +1823,7 @@ export default function BuilderPage() {
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Description</Label>
                         <Textarea
                           rows={3}
                           placeholder="Detailed description of the creative work..."
@@ -1643,7 +1833,7 @@ export default function BuilderPage() {
                             updated[index].description = e.target.value;
                             setCreativeWorks(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 resize-none"
+                          className="font-serif border-sumi/20 focus:border-vermilion resize-none"
                         />
                       </div>
                     </div>
@@ -1672,7 +1862,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {grants.map((grant, index) => (
-                  <div key={grant.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={grant.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Grant {index + 1}</span>
                       {grants.length > 1 && (
@@ -1690,9 +1880,9 @@ export default function BuilderPage() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Type</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Type</Label>
                           <select
-                            className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                            className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                             value={grant.type}
                             onChange={(e) => {
                               const updated = [...grants];
@@ -1705,9 +1895,9 @@ export default function BuilderPage() {
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Status</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Status</Label>
                           <select
-                            className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                            className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                             value={grant.status}
                             onChange={(e) => {
                               const updated = [...grants];
@@ -1722,7 +1912,7 @@ export default function BuilderPage() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Proposal Title</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Proposal Title</Label>
                         <Input
                           placeholder="Title of the grant proposal"
                           value={grant.title}
@@ -1731,12 +1921,12 @@ export default function BuilderPage() {
                             updated[index].title = e.target.value;
                             setGrants(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                          className="font-serif border-sumi/20 focus:border-vermilion"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Funding Agency</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Funding Agency</Label>
                           <Input
                             placeholder="e.g., NSF, NIH"
                             value={grant.agency}
@@ -1745,11 +1935,11 @@ export default function BuilderPage() {
                               updated[index].agency = e.target.value;
                               setGrants(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Role</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Role</Label>
                           <Input
                             placeholder="PI, Co-PI, etc."
                             value={grant.role}
@@ -1758,13 +1948,13 @@ export default function BuilderPage() {
                               updated[index].role = e.target.value;
                               setGrants(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Effort %</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Effort %</Label>
                           <Input
                             placeholder="e.g., 20%"
                             value={grant.effort}
@@ -1773,11 +1963,11 @@ export default function BuilderPage() {
                               updated[index].effort = e.target.value;
                               setGrants(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Budget</Label>
+                          <Label className="text-xs font-medium text-sumi/80">Budget</Label>
                           <Input
                             placeholder="e.g., $500,000"
                             value={grant.budget}
@@ -1786,12 +1976,12 @@ export default function BuilderPage() {
                               updated[index].budget = e.target.value;
                               setGrants(updated);
                             }}
-                            className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                            className="font-serif border-sumi/20 focus:border-vermilion"
                           />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Coverage Period</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Coverage Period</Label>
                         <Input
                           placeholder="e.g., 2023-2026"
                           value={grant.period}
@@ -1800,7 +1990,7 @@ export default function BuilderPage() {
                             updated[index].period = e.target.value;
                             setGrants(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                          className="font-serif border-sumi/20 focus:border-vermilion"
                         />
                       </div>
                     </div>
@@ -1829,7 +2019,7 @@ export default function BuilderPage() {
               </div>
               <div className="space-y-6">
                 {teachingEntries.map((entry, index) => (
-                  <div key={entry.id} className="space-y-4 pb-6 border-b border-gray-100 dark:border-gray-900 last:border-0">
+                  <div key={entry.id} className="space-y-4 pb-6 border-b border-sumi/10 last:border-0">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-400">Entry {index + 1}</span>
                       {teachingEntries.length > 1 && (
@@ -1846,9 +2036,9 @@ export default function BuilderPage() {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Type</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Type</Label>
                         <select
-                          className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:border-blossom-400 dark:focus:border-blossom-600 transition-colors"
+                          className="w-full border-b-2 border-sumi/20 bg-transparent px-3 py-3 text-base text-sumi focus:outline-none focus:border-vermilion appearance-none font-serif bg-[url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+)] bg-[length:12px] bg-[position:right_center] bg-no-repeat pr-8 transition-colors"
                           value={entry.type}
                           onChange={(e) => {
                             const updated = [...teachingEntries];
@@ -1863,7 +2053,7 @@ export default function BuilderPage() {
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Title/Name</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Title/Name</Label>
                         <Input
                           placeholder="Course title, student name, or activity description"
                           value={entry.title}
@@ -1872,11 +2062,11 @@ export default function BuilderPage() {
                             updated[index].title = e.target.value;
                             setTeachingEntries(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600"
+                          className="font-serif border-sumi/20 focus:border-vermilion"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Details</Label>
+                        <Label className="text-xs font-medium text-sumi/80">Details</Label>
                         <Textarea
                           rows={3}
                           placeholder="Term/year, number of students, thesis title, additional information..."
@@ -1886,7 +2076,7 @@ export default function BuilderPage() {
                             updated[index].details = e.target.value;
                             setTeachingEntries(updated);
                           }}
-                          className="border-gray-200 dark:border-gray-800 focus:border-blossom-400 dark:focus:border-blossom-600 resize-none"
+                          className="font-serif border-sumi/20 focus:border-vermilion resize-none"
                         />
                       </div>
                     </div>
@@ -1917,6 +2107,10 @@ export default function BuilderPage() {
                   education={education}
                   projects={projects}
                   skills={skills}
+                  certifications={certifications}
+                  githubUsername={personalInfo.github}
+                  linkedinUsername={personalInfo.linkedin}
+                  website={personalInfo.website}
                   isAtsMode={isAtsMode}
                   sectionOrder={sectionOrder}
                 />

@@ -25,7 +25,7 @@ export function InkCursor({ effect }: InkCursorProps) {
   const particles = useRef<Particle[]>([]);
   const brushPoints = useRef<{ x: number; y: number; pressure: number }[]>([]);
   const lastPos = useRef({ x: 0, y: 0 });
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (effect === 'none') return;
@@ -273,7 +273,7 @@ export function InkCursor({ effect }: InkCursorProps) {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', resizeCanvas);
-      if (animationFrameId.current) {
+      if (animationFrameId.current !== undefined) {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
