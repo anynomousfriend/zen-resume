@@ -34,3 +34,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary files
+*.backup
+*.tmp
+tmp_*
+.cache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# documents/images (temporary)
+*.pdf
+*.png
+*.jpg
+*.jpeg
+!public/*.png
+!public/*.jpg
+!public/*.jpeg
+
+# marketing/content
+linkedin-content/
