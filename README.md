@@ -10,15 +10,16 @@
 ## ✨ Features
 
 ### 🎨 Beautiful UI/UX
-- **Cherry Blossom Theme**: Elegant pink and white color scheme with stunning dark mode
-- **Animated ASCII Art**: Cherry blossom animations using anime.js
-- **Glass-morphism Effects**: Modern, elegant design patterns
-- **Smooth Transitions**: Delightful micro-interactions throughout
+- **Zen Design System**: Japanese-inspired minimalist aesthetic with washi (cream paper), sumi (ink black), indigo, and vermilion accent colors
+- **Animated ASCII Art**: Cherry blossom animations using anime.js on the landing page
+- **Minimal Glassmorphism**: Subtle backdrop-blur effects on headers for depth
+- **Smooth Transitions**: Delightful micro-interactions with cubic-bezier easing
 - **Fully Responsive**: Perfect on mobile, tablet, and desktop
+- **Dark Mode Support**: Thoughtfully designed dark theme with adjusted color palette
 
 ### 📝 Resume Building
 - **Intuitive Form Builder**: Section-based navigation (Personal Info, Experience, Education, Skills, Projects, Certifications)
-- **Drag & Drop Reordering**: Organize sections with ease
+- **Drag & Drop Reordering**: Organize sections with ease using @dnd-kit
 - **Real-time Preview**: See changes instantly with modern and academic templates
 - **Dynamic Fields**: Add/remove entries for all sections
 - **Auto-save**: Your data is automatically saved to browser localStorage
@@ -46,7 +47,8 @@
 - **ATS Mode**: Toggle between human-readable and ATS-optimized views
 - **Section Reordering**: Customize the order of resume sections
 - **Template Switching**: Choose between Modern and Academic templates
-- **Dark Mode**: Beautiful cherry blossom night theme
+- **Floating Labels**: Elegant form inputs with animated labels
+- **Japanese Typography**: Noto Serif JP and Playfair Display fonts
 
 ## 🚀 Quick Start
 
@@ -142,23 +144,33 @@ zen-resume/
 
 ## 🎨 Design Philosophy
 
-ZenResume embraces a **mindful, calm approach** to resume building:
+ZenResume embraces a **Japanese-inspired, minimalist approach** to resume building:
 
-### Color Palette
+### Zen Design System Color Palette
 
-**Light Mode (Cherry Blossom Day)**
-- Primary: `#ff3b94` to `#ff61ad`
-- Background: White with pink gradients
-- Accents: Soft pink tones
+**Core Colors**
+- **Washi** (和紙): `#F2F0EB` - Cream paper color for backgrounds
+- **Sumi** (墨): `#1A1A1A` - Deep ink black for text
+- **Indigo** (藍): `#2F3640` - Muted blue-gray for headings
+- **Vermilion** (朱): `#BC3F3C` - Red accent for highlights
+- **Gold** (金): `#D4AF37` - Metallic gold for special elements
+- **Sakura** (桜): `#E6C0C0` - Soft pink for subtle touches
 
-**Dark Mode (Cherry Blossom Night)**
-- Primary: `#ec4899` to `#db2777`
-- Background: Deep purple-pink (`#500724` to `#831843`)
-- Accents: Muted pink with glow effects
+### Design Principles
+- **Ma (間)**: Negative space and breathing room
+- **Kanso (簡素)**: Simplicity and elimination of clutter
+- **Shizen (自然)**: Natural and effortless feel
+- **Shibui (渋い)**: Subtle and understated elegance
+- **Seijaku (静寂)**: Tranquility and calm
+
+### Typography
+- **Serif**: Playfair Display & Noto Serif JP for elegance
+- **Sans**: Inter for clean body text
+- **Monospace**: Courier New for ASCII art
 
 ### Animation Principles
 - **Purposeful**: Every animation serves a function
-- **Smooth**: 60fps transitions with proper easing
+- **Smooth**: 60fps transitions with cubic-bezier(0.16, 1, 0.3, 1) easing
 - **Subtle**: Enhance, don't distract
 - **Accessible**: Respects prefers-reduced-motion
 
@@ -243,9 +255,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🌸 About
 
-**ZenResume** is designed to make resume building a delightful, stress-free experience. In a world of noise, we help you find your signal and craft your professional story with elegance and intention.
+**ZenResume** is designed to make resume building a delightful, stress-free experience. Inspired by Japanese aesthetics and the principles of Zen design, we help you find your signal in a world of noise and craft your professional story with elegance and intention.
 
-Built with ❤️ and 🌸 by developers who care about craft.
+Built with ❤️ and 禅 by developers who care about craft.
 
 ---
 
@@ -256,6 +268,7 @@ Built with ❤️ and 🌸 by developers who care about craft.
 - [shadcn](https://twitter.com/shadcn) for the beautiful UI components
 - Certificate platforms for providing accessible public certificate data
 - The open-source community for incredible tools and libraries
+- Japanese design philosophy for inspiring the aesthetic
 
 ---
 
