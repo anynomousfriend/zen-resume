@@ -215,13 +215,27 @@ export default function BuilderPage() {
     }
   }, []);
 
+  // Track if user manually clicked a section
+  const isManualScroll = useRef(false);
+
   // Scroll to section helper
   const scrollToSection = (sectionId: string) => {
     const element = document.querySelector(`[data-section="${sectionId}"]`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      isManualScroll.current = true;
       setActiveSection(sectionId);
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Reset manual scroll flag after animation completes
+      setTimeout(() => {
+        isManualScroll.current = false;
+      }, 1000);
     }
+  };
+
+  // Handle section hover - set active on mouse enter
+  const handleSectionHover = (sectionId: string) => {
+    setActiveSection(sectionId);
   };
 
   // Intersection Observer for progressive disclosure
@@ -231,13 +245,16 @@ export default function BuilderPage() {
     const sections = document.querySelectorAll('.form-chunk');
     
     const observer = new IntersectionObserver((entries) => {
+      // Don't update if user manually clicked a section
+      if (isManualScroll.current) return;
+      
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
           const id = entry.target.getAttribute('data-section') || '';
           if (id) setActiveSection(id);
         }
       });
-    }, { threshold: 0.3, rootMargin: '-100px 0px' });
+    }, { threshold: [0, 0.3, 0.5, 1], rootMargin: '-100px 0px' });
 
     sections.forEach(section => observer.observe(section));
 
@@ -584,7 +601,8 @@ export default function BuilderPage() {
         education,
         projects,
         certifications,
-        sectionOrder
+        sectionOrder,
+        isAtsMode
       });
       
       // Open in new window for printing
@@ -628,7 +646,8 @@ export default function BuilderPage() {
         education,
         projects,
         certifications,
-        sectionOrder
+        sectionOrder,
+        isAtsMode
       });
       
       const blob = await Packer.toBlob(doc);
@@ -821,6 +840,7 @@ export default function BuilderPage() {
             {/* Personal Info Section - Zen Styled */}
             <section 
               data-section="personal"
+              onMouseEnter={() => handleSectionHover('personal')}
               className={`form-chunk relative bg-white p-12 border border-sumi/10 transition-all duration-500 ${
                 activeSection === 'personal' ? 'active' : ''
               }`}
@@ -948,6 +968,7 @@ export default function BuilderPage() {
             {/* Experience Section - Zen Styled */}
             <section 
               data-section="experience"
+              onMouseEnter={() => handleSectionHover('experience')}
               className={`form-chunk relative bg-white p-12 border border-sumi/10 transition-all duration-500 ${
                 activeSection === 'experience' ? 'active' : ''
               }`}
@@ -1111,6 +1132,7 @@ export default function BuilderPage() {
             {/* Education Section - Zen Styled */}
             <section 
               data-section="wisdom"
+              onMouseEnter={() => handleSectionHover('wisdom')}
               className={`form-chunk relative bg-white p-12 border border-sumi/10 transition-all duration-500 ${
                 activeSection === 'wisdom' ? 'active' : ''
               }`}
@@ -1326,6 +1348,7 @@ export default function BuilderPage() {
             {/* Projects Section - Zen Styled */}
             <section 
               data-section="creations"
+              onMouseEnter={() => handleSectionHover('creations')}
               className={`form-chunk relative bg-white p-12 border border-sumi/10 transition-all duration-500 ${
                 activeSection === 'creations' ? 'active' : ''
               }`}
@@ -1449,6 +1472,7 @@ export default function BuilderPage() {
             {/* Certifications Section - Zen Styled */}
             <section 
               data-section="proof"
+              onMouseEnter={() => handleSectionHover('proof')}
               className={`form-chunk relative bg-white p-12 border border-sumi/10 transition-all duration-500 ${
                 activeSection === 'proof' ? 'active' : ''
               }`}

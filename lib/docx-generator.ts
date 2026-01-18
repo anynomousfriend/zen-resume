@@ -60,10 +60,11 @@ interface ResumeData {
   projects: Project[];
   certifications: Certification[];
   sectionOrder?: SectionId[];
+  isAtsMode?: boolean;
 }
 
 export function generateDOCX(data: ResumeData): Document {
-  const { personalInfo, experiences, education, projects, certifications, sectionOrder } = data;
+  const { personalInfo, experiences, education, projects, certifications, sectionOrder, isAtsMode = false } = data;
   
   const paragraphs: Paragraph[] = [];
 

@@ -57,10 +57,11 @@ interface ResumeData {
   projects: Project[];
   certifications: Certification[];
   sectionOrder?: SectionId[];
+  isAtsMode?: boolean;
 }
 
 export function generateResumeHTML(data: ResumeData): string {
-  const { personalInfo, experiences, education, projects, certifications, sectionOrder } = data;
+  const { personalInfo, experiences, education, projects, certifications, sectionOrder, isAtsMode = false } = data;
   
   const currentDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -173,21 +174,23 @@ export function generateResumeHTML(data: ResumeData): string {
     
     /* Header */
     .header {
-      text-align: center;
+      text-align: ${isAtsMode ? 'left' : 'center'};
       margin-bottom: 1em;
+      ${isAtsMode ? 'border-bottom: 2px solid #000; padding-bottom: 0.5em;' : ''}
     }
     
     .header h1 {
-      font-size: 24pt;
-      font-weight: normal;
+      font-size: ${isAtsMode ? '18pt' : '24pt'};
+      font-weight: ${isAtsMode ? 'bold' : 'normal'};
       margin-bottom: 0.3em;
       color: #000;
+      ${isAtsMode ? 'text-transform: uppercase;' : ''}
     }
     
     .contact-info {
       font-size: 10pt;
       display: flex;
-      justify-content: center;
+      justify-content: ${isAtsMode ? 'flex-start' : 'center'};
       align-items: center;
       flex-wrap: wrap;
       gap: 0.5em;
@@ -349,11 +352,20 @@ export function generateResumeHTML(data: ResumeData): string {
   <div class="header">
     <h1>${escapeHTML(personalInfo.fullName)}</h1>
     <div class="contact-info">
-      ${personalInfo.github ? `<span class="contact-item">🔗 <a href="https://github.com/${escapeHTML(personalInfo.github)}">${escapeHTML(personalInfo.github)}</a></span>` : ''}
-      ${personalInfo.linkedin ? `<span class="contact-item">💼 <a href="https://linkedin.com/in/${escapeHTML(personalInfo.linkedin)}">${escapeHTML(personalInfo.linkedin)}</a></span>` : ''}
-      ${personalInfo.website ? `<span class="contact-item">🌐 <a href="${escapeHTML(personalInfo.website)}">${escapeHTML(personalInfo.website)}</a></span>` : ''}
-      ${personalInfo.email ? `<span class="contact-item">📧 <a href="mailto:${escapeHTML(personalInfo.email)}">${escapeHTML(personalInfo.email)}</a></span>` : ''}
-      ${personalInfo.phone ? `<span class="contact-item">📱 ${escapeHTML(personalInfo.phone)}</span>` : ''}
+      ${isAtsMode ? `
+        ${personalInfo.email ? `<span class="contact-item">${escapeHTML(personalInfo.email)}</span>` : ''}
+        ${personalInfo.phone ? `<span class="contact-item">${escapeHTML(personalInfo.phone)}</span>` : ''}
+        ${personalInfo.location ? `<span class="contact-item">${escapeHTML(personalInfo.location)}</span>` : ''}
+        ${personalInfo.github ? `<span class="contact-item">github.com/${escapeHTML(personalInfo.github)}</span>` : ''}
+        ${personalInfo.linkedin ? `<span class="contact-item">linkedin.com/in/${escapeHTML(personalInfo.linkedin)}</span>` : ''}
+        ${personalInfo.website ? `<span class="contact-item">${escapeHTML(personalInfo.website)}</span>` : ''}
+      ` : `
+        ${personalInfo.github ? `<span class="contact-item">🔗 <a href="https://github.com/${escapeHTML(personalInfo.github)}">${escapeHTML(personalInfo.github)}</a></span>` : ''}
+        ${personalInfo.linkedin ? `<span class="contact-item">💼 <a href="https://linkedin.com/in/${escapeHTML(personalInfo.linkedin)}">${escapeHTML(personalInfo.linkedin)}</a></span>` : ''}
+        ${personalInfo.website ? `<span class="contact-item">🌐 <a href="${escapeHTML(personalInfo.website)}">${escapeHTML(personalInfo.website)}</a></span>` : ''}
+        ${personalInfo.email ? `<span class="contact-item">📧 <a href="mailto:${escapeHTML(personalInfo.email)}">${escapeHTML(personalInfo.email)}</a></span>` : ''}
+        ${personalInfo.phone ? `<span class="contact-item">📱 ${escapeHTML(personalInfo.phone)}</span>` : ''}
+      `}
     </div>
   </div>
 
