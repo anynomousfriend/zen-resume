@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { InkCursor, CursorEffect } from '@/components/ink-cursor';
 import { CursorSelector } from '@/components/cursor-selector';
 
@@ -148,10 +149,13 @@ export default function Home() {
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="flex justify-between items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <img 
+              <Image 
                 src="/logo-02.png" 
                 alt="ZenResume Logo" 
+                width={80}
+                height={80}
                 className="h-16 md:h-20 w-auto"
+                priority
               />
             </Link>
             
@@ -258,7 +262,7 @@ export default function Home() {
               <span className="text-xs uppercase tracking-[0.2em] text-vermilion font-bold mb-6 block">The Philosophy</span>
               <h2 className="font-serif text-6xl md:text-7xl text-indigo mb-8">The Art of <br />Empty Space</h2>
               <p className="text-lg leading-relaxed text-gray-700">
-                In Japanese aesthetics, <strong>Ma</strong> (間) is the "negative space" or interval. We apply this principle to resume design, ensuring your achievements breathe and stand out without clutter.
+                In Japanese aesthetics, <strong>Ma</strong> (間) is the &ldquo;negative space&rdquo; or interval. We apply this principle to resume design, ensuring your achievements breathe and stand out without clutter.
               </p>
             </div>
 
@@ -322,7 +326,7 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="text-center reveal-up opacity-0">
             <p className="font-serif text-4xl md:text-5xl lg:text-6xl italic leading-tight mb-8">
-              "The obstacle is the path."
+              &ldquo;The obstacle is the path.&rdquo;
             </p>
             <span className="inline-block text-xs uppercase tracking-[0.3em] mt-8 border-t border-white/30 pt-4">
               — Zen Proverb
@@ -343,9 +347,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Template 1 - Clean Professional (Current) */}
             <div className="relative h-[600px] bg-white border-2 border-sumi/10 overflow-hidden group reveal-up opacity-0">
-              <img 
+              <Image 
                 src="/resume-template-clean.png" 
                 alt="Clean Professional Resume Template" 
+                width={400}
+                height={600}
                 className="w-full h-full object-contain p-4 group-hover:scale-105 transition-all duration-1000"
               />
               <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">

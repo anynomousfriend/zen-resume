@@ -198,21 +198,39 @@ export default function BuilderPage() {
     const saved = localStorage.getItem('resume-data');
     if (saved) {
       const data = JSON.parse(saved);
-      setPersonalInfo(data.personalInfo || personalInfo);
-      setExperiences(data.experiences || experiences);
-      setEducation(data.education || education);
-      setSkills(data.skills || skills);
-      setProjects(data.projects || projects);
-      setCertifications(data.certifications || certifications);
-      setLanguages(data.languages || languages);
-      setPublications(data.publications || publications);
-      setCreativeWorks(data.creativeWorks || creativeWorks);
-      setGrants(data.grants || grants);
-      setTeachingEntries(data.teachingEntries || teachingEntries);
-      setSectionTitles(data.sectionTitles || sectionTitles);
+      setPersonalInfo(data.personalInfo || {
+        fullName: '',
+        email: '',
+        phone: '',
+        location: '',
+        title: '',
+        summary: '',
+        github: '',
+        linkedin: '',
+        website: ''
+      });
+      setExperiences(data.experiences || []);
+      setEducation(data.education || []);
+      setSkills(data.skills || []);
+      setProjects(data.projects || []);
+      setCertifications(data.certifications || []);
+      setLanguages(data.languages || []);
+      setPublications(data.publications || []);
+      setCreativeWorks(data.creativeWorks || []);
+      setGrants(data.grants || []);
+      setTeachingEntries(data.teachingEntries || []);
+      setSectionTitles(data.sectionTitles || {
+        education: 'EDUCATION & EMPLOYMENT HISTORY',
+        publications: 'PUBLICATIONS',
+        creativeActivity: 'CREATIVE ACTIVITY',
+        grants: 'GRANTS',
+        teaching: 'TEACHING AND ADVISING',
+        service: 'SERVICE & PROFESSIONAL DEVELOPMENT'
+      });
       setIsAtsMode(data.isAtsMode || false);
       setSectionOrder(data.sectionOrder || [...DEFAULT_SECTION_ORDER]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Track if user manually clicked a section
